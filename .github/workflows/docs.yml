@@ -1,0 +1,39 @@
+name: Documenation
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.head_ref }}
+
+    - name: Install FORD
+      run: |
+        sudo apt update -y
+        sudo apt -y install python3-pip
+        pip3 install --upgrade pip
+        pip3 install ford
+        ford --version
+    - name: Build documentation
+      run: |
+        export GK_SYSTEM=gnu_ubuntu
+        make -I Makefiles doc
+    - name: Checkout pages branch
+      uses: actions/checkout@v2
+      with:
+        ref: gh-pages
+    - name: Copy built documentation
+      run: |
+        cp -rv docs/html/* .
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: |
+          Add built documentation
+
+          Documentation from commit ${{ github.head_ref }}
+        add_options: '-au'
